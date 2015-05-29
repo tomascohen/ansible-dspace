@@ -1,0 +1,22 @@
+  - name: postgres | install postgresql
+    apt: pkg={{item}} state=installed
+    with_items:
+      - postgresql
+      - postgresql-contrib
+    notify:
+      - restart postgresql
+
+  - name: postgres | add dspace user
+    postgresql_user: name={{dspace_db_user}} password={{dspace_db_pass}}
+    tags: postgres
+
+  - name: postgres | add dspace database
+    postgresql_db: name={{dspace_db_name}} encoding='UTF-8' template='template0' owner={{dspace_db_user}}
+    tags: postgres
+
+  - name: postgres | configure md5 auth for dspace database
+    template: src=templates/pg_hba.conf.j2 dest=/etc/postgresql/9.1/main/pg_hba.conf
+    notify:
+      - restart postgresql
+    tags: postgres
+

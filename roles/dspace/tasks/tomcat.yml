@@ -1,0 +1,37 @@
+
+# Configure Tomcat 7
+- name: tomcat | Install tomcat7 and some tools
+  apt: pkg={{item}} install_recommends=no
+  with_items:
+    - tomcat7
+    - maven
+    - ant
+  notify:
+    - stop tomcat
+  tags: deps
+
+# Drop our own server.xml file
+- name: tomcat | configure server.xml
+  template: src=server.xml.j2 dest=/etc/tomcat7/server.xml
+  tags: tomcat
+
+# Set Tomcat defaults
+- name: tomcat | configure tomcat defaults
+  template: src=tomcat7.j2 dest=/etc/default/tomcat7
+  tags: tomcat
+
+- name: tomcat | change tomcat shell to bash
+  user: name=tomcat7 shell=/bin/bash
+  tags: tomcat
+
+- name: tomcat | prepare maven settings dir
+  file: dest=/usr/share/tomcat7/.m2 owner=tomcat7 group=tomcat7 mode=770 state=directory
+  tags: tomcat
+
+# - name: tomcat | prepare dspace source dir
+#   file: dest={{dspace_source_dir}} owner=tomcat7 group=tomcat7 mode=770 state=directory
+#   tags: tomcat
+
+- name: tomcat | prepare webapps dir
+  file: dest={{dspace_install_dir}} owner=tomcat7 group=tomcat7 state=directory
+  tags: tomcat

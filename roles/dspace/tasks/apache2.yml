@@ -1,0 +1,17 @@
+  - name: apache2 | disable default site
+    command: a2dissite default
+    tags: apache2
+
+  - name: apache2 | enable modules
+    command: a2enmod rewrite headers proxy proxy_http expires
+    tags: apache2
+
+  - name: apache2 | copy vhost config
+    template: src=templates/dspace.j2 dest=/etc/apache2/sites-available/dspace
+    tags: apache2
+
+  - name: apache2 | enable dspace site
+    command: a2ensite dspace
+    notify:
+      - restart apache2
+    tags: apache2

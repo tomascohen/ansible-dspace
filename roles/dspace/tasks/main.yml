@@ -1,0 +1,6 @@
+---
+ - include: common.yml
+ - include: tomcat.yml
+ - include: postgresql.yml
+ - include: apache2.yml
+# - include: dspace.yml

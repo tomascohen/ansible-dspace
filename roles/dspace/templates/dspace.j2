@@ -1,0 +1,51 @@
+<VirtualHost *:80>
+	ServerAdmin	{{server_admin}}
+
+	# name the server sends back to the client
+	# ... this should match the name Tomcat's
+	# application thinks it is running on (<Host...) 
+	ServerName		{{server_hostname}}
+
+	### BEGIN: cache settings ###
+	### Depends on mod_headers being loaded:
+	###             sudo a2enmod headers
+	###             sudo apache2ctl graceful
+	### See: http://httpd.apache.org/docs/2.2/mod/mod_headers.html
+    <IfModule mod_headers.c>
+        # force media to revalidate
+        <FilesMatch "\.(xml|txt|js|css|gif|jpe?g|png|swf)$">
+            ExpiresDefault A3600
+            Header append Cache-Control "must-revalidate"
+        </FilesMatch>
+
+        # forbid caching of sensitive pages
+        <LocationMatch "/(login|password-login|register|profile)">
+            # recommended to use both no-cache and no-store
+            # see: http://palpapers.plynt.com/issues/2008Jul/cache-control-attributes/
+            Header append Cache-Control "no-cache, no-store"
+        </LocationMatch>
+    </IfModule>
+	### END: cache settings ###
+
+	# DON'T TURN ProxyRequests ON!  Bad things will happen
+	# http://httpd.apache.org/docs/2.2/mod/mod_proxy.html#access
+	# http://www.akadia.com/services/prevent_abuse_proxy.html
+	ProxyRequests	Off
+	# pass the Host: header from the incoming request to the proxied host,
+	# instead of the hostname specified in the ProxyPass line
+	ProxyPreserveHost On
+	ProxyPass			/	http://localhost:8081/
+	ProxyPassReverse	/	http://localhost:8081/
+
+	<Proxy *>
+		allow from all
+	</Proxy>
+
+    # protect dspace's solr statistics (we only need to access them from localhost)
+    <Location "/solr">
+        Order   deny,allow
+        Deny    from all
+        Allow   from 127.0.0.1
+    </Location>
+
+</VirtualHost>
